@@ -1,46 +1,164 @@
-# Getting Started with Create React App
+# Blue Pigeon — Search & Discoverability UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend application for the Blue Pigeon voice-first messaging platform.
+Built with React and Tailwind CSS. Provides a Slack-like interface for
+searching across messages, channels, topics, and users.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Live URLs
 
-### `npm start`
+| Service     | URL                            |
+|-------------|--------------------------------|
+| Frontend UI | http://34.227.72.164:3001      |
+| Backend API | http://34.227.72.164:7001/api  |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+---
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Test Credentials
 
-### `npm test`
+| Email                  | Password    | Access                                             |
+|------------------------|-------------|----------------------------------------------------|
+| alice@bluepigeon.io    | password123 | All channels including private #payments and #devops |
+| bob@bluepigeon.io      | password123 | #engineering, #payments, #devops                   |
+| carol@bluepigeon.io    | password123 | #engineering, #general, #design only               |
+| dave@bluepigeon.io     | password123 | #general, #design only                             |
+| eve@bluepigeon.io      | password123 | #engineering, #general only                        |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+> **Permission filtering test:** Login as `carol` and search "payment"
+> — she has no access to the private #payments channel so payment
+> messages and topics will not appear in her results.
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Tech Stack
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+| Layer     | Technology              |
+|-----------|-------------------------|
+| Framework | React 18 + TypeScript   |
+| Styling   | Tailwind CSS v3         |
+| Routing   | React Router v6         |
+| HTTP      | Axios                   |
+| Build     | Create React App        |
+| Container | Docker + Nginx          |
+| CI/CD     | GitHub Actions          |
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## Project Structure
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```
+src/
+├── api/                Axios client with auth interceptors
+├── components/
+│   ├── layout/         Navbar, Sidebar
+│   ├── search/         SearchBar, SearchResults, result cards, modal
+│   └── common/         Spinner, EmptyState
+├── context/            AuthContext — global auth state
+├── hooks/              useSearch, useChannel, useTopic
+├── pages/              LoginPage, RegisterPage, MainPage, ChannelPage, TopicPage
+└── types/              TypeScript interfaces
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Features
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Search
+- Unified search bar in the navbar
+- Debounced input — fires after 400ms of no typing
+- Grouped results — Messages, Channels, Topics, Users
+- Result count badges per entity
+- Loading and empty states
 
-## Learn More
+### Messages
+- Click a message result to open a detail modal
+- Modal shows full transcript, sender, channel, topic, timestamp
+- Navigate to topic from modal — scrolls to and highlights the target message
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Channels
+- Slack-like sidebar showing all accessible channels
+- Private channels shown with a lock icon
+- Click a channel to view its topics
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Topics
+- Click a topic to view all messages inside it
+- Breadcrumb navigation back to the parent channel
+
+### Auth
+- JWT-based login and register
+- Token stored in localStorage
+- Auto redirect to login on 401
+
+---
+
+## Run Locally
+
+### Prerequisites
+
+- Node.js 18+
+- Backend API running (see backend README)
+
+### Steps
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/rauniksingh/blue-pigeon-ui.git
+cd blue-pigeon-ui
+```
+
+**2. Install dependencies**
+
+```bash
+npm install
+```
+
+**3. Configure environment**
+
+Create a `.env` file at the root:
+
+```env
+REACT_APP_API_URL=http://localhost:7001/api
+```
+
+> To use the live backend instead of running locally:
+> ```env
+> REACT_APP_API_URL=http://34.227.72.164:7001/api
+> ```
+
+**4. Start the app**
+
+```bash
+npm start
+```
+
+App runs at `http://localhost:3000`
+
+---
+
+## Run with Docker
+
+```bash
+docker build \
+  --build-arg REACT_APP_API_URL=http://localhost:7001/api \
+  -t bluepigeon-frontend .
+
+docker run -p 3001:80 bluepigeon-frontend
+```
+
+App runs at `http://localhost:3001`
+
+---
+
+## Deployment
+
+The app is deployed on AWS EC2 using Docker and GitHub Actions.
+
+Push to `main` branch triggers:
+1. Docker image build with `REACT_APP_API_URL` injected at build time
+2. Push to Docker Hub
+3. SSH deploy to EC2
+4. Container restart with latest image
+
+---
