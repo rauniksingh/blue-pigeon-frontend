@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import client from './api/client';
 import { useSearch } from './hooks/useSearch';
-import { ChannelDetail, SearchResults as SearchResultsType } from './types';
+import { ChannelDetail } from './types';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MainPage from './pages/MainPage';
@@ -33,6 +33,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [query, setQuery] = useState('');
   const [channels, setChannels] = useState<ChannelDetail[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
+  const location = useLocation();
+
+  // clear search results when navigating to topic or channel
+  useEffect(() => {
+    if (
+      location.pathname.includes('/topics/') ||
+      location.pathname.includes('/channels/')
+    ) {
+      clearResults();
+    }
+  }, [location.pathname, clearResults]);
 
   useEffect(() => {
     const fetchChannels = async () => {
